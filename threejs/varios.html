@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Esfera compuesta con Three.js</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+    <script>
+        // Configuración de la escena
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Crear la esfera compuesta
+        const sphere = new THREE.Group();
+
+        // Esfera mayor
+        const mainSphereGeometry = new THREE.SphereGeometry(5, 32, 32);
+        const mainSphereMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const mainSphere = new THREE.Mesh(mainSphereGeometry, mainSphereMaterial);
+        sphere.add(mainSphere);
+
+        // Esferas más pequeñas
+        const numSmallSpheres = 20;
+        const smallSphereRadius = 1;
+        const smallSphereDistance = 10;
+
+        const smallSpheres = [];
+
+        for (let i = 0; i < numSmallSpheres; i++) {
+            const smallSphereGeometry = new THREE.SphereGeometry(smallSphereRadius, 32, 32);
+            const smallSphereMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const smallSphere = new THREE.Mesh(smallSphereGeometry, smallSphereMaterial);
+
+            const angle = (i / numSmallSpheres) * Math.PI * 2;
+            const x = Math.cos(angle) * smallSphereDistance;
+            const y = Math.sin(angle) * smallSphereDistance;
+
+            smallSphere.position.set(x, y, 0);
+            sphere.add(smallSphere);
+            smallSpheres.push(smallSphere);
+        }
+
+        // Líneas que conectan las esferas
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
+
+        for (let i = 0; i < smallSpheres.length; i++) {
+            const lineGeometry = new THREE.Geometry();
+            lineGeometry.vertices.push(
+                new THREE.Vector3(),
+                smallSpheres[i].position
+            );
+
+            const line = new THREE.Line(lineGeometry, lineMaterial);
+            sphere.add(line);
+        }
+
+        scene.add(sphere);
+
+        // Mover la cámara al mover el cursor
+        function handleMouseMove(event) {
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+            const windowHalfX = window.innerWidth / 2;
+            const windowHalfY = window.innerHeight / 2;
+            const targetX = (mouseX - windowHalfX) / 100;
+            const targetY = (mouseY - windowHalfY) / 100;
+            camera.position.x = targetX;
+            camera.position.y = -targetY;
+            camera.lookAt(scene.position);
+        }
+
+        // Manejar eventos de movimiento del cursor
+        document.addEventListener('mousemove', handleMouseMove);
+
+        // Animar la escena
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
